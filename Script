@@ -1,0 +1,171 @@
+/********************************************************
+
+* Version 1.2
+
+* April 25, 2019
+
+* Created By: Denys German
+
+********************************************************/
+
+var days_off = '28-04-2019,29-04-2019,30-04-2019,01-05-2019,09-05-2019';//задаем даты выходных дней, в которые кампании не должны работать без пробелов в формате dd-mm-yyyy
+
+var labelName = 'active';//ярлык кампаний, к которым будет примеменяться скрипт
+
+var statusSwitcher = 0;
+
+
+
+
+function main() {
+
+  //Подготовка списка дат
+
+  var todayStr = new Date();
+
+  var yesterdayStr = new Date();
+
+  yesterdayStr.setDate(todayStr.getDate() - 1);
+
+  var todayStrFromat = Utilities.formatDate(todayStr, AdsApp.currentAccount().getTimeZone(), 'dd-MM-yyyy');
+
+  var yesterdayStrFromat = Utilities.formatDate(yesterdayStr, AdsApp.currentAccount().getTimeZone(), 'dd-MM-yyyy');
+
+  var dataFormatArr = days_off.split(',');
+
+  //Алгоритм определения того, что делать с кампаниями: включать, выключать, ничего не делать
+
+  for (var i=0; i<dataFormatArr.length; i++)
+
+  {
+
+                if(dataFormatArr[i]==todayStrFromat)
+
+    {
+
+                               statusSwitcher = 1;
+
+                                                break;
+
+    }
+
+    else if(dataFormatArr[i]==yesterdayStrFromat)
+
+                               statusSwitcher = 2;
+
+  }
+
+  //Блок включения/выключения кампаний
+
+  switch (statusSwitcher) {
+
+  case 1:
+
+    pauseCampaign();
+
+    break;
+
+  case 2:
+
+    enableCampaign();
+
+    break;
+
+   default:
+
+    Logger.log('Никаких изменений');
+
+  }
+
+}
+
+//Остановка кампаний
+
+function pauseCampaign() {
+
+var campaignIterator = AdsApp.campaigns()
+
+  .withCondition("LabelNames CONTAINS_ANY ['" + labelName + "']")
+
+  .get();
+
+var shopingcampaignIterator = AdsApp.shoppingCampaigns()
+
+  .withCondition("LabelNames CONTAINS_ANY ['" + labelName + "']")
+
+  .get();
+
+var videocampaignIterator = AdsApp.videoCampaigns()
+
+  .withCondition("LabelNames CONTAINS_ANY ['" + labelName + "']")
+
+  .get();
+
+while(campaignIterator.hasNext()) {
+
+  campaignIterator.next().pause();
+
+}
+
+while(shopingcampaignIterator.hasNext()) {
+
+  shopingcampaignIterator.next().pause();
+
+}
+
+while(videocampaignIterator.hasNext()) {
+
+  videocampaignIterator.next().pause();
+
+}
+
+   Logger.log("Кампании остановлены");
+
+}
+
+
+
+
+//Запуск кампаний
+
+function enableCampaign() {
+
+var campaignIterator = AdsApp.campaigns()
+
+  .withCondition("LabelNames CONTAINS_ANY ['" + labelName + "']")
+
+  .get();
+
+var shopingcampaignIterator = AdsApp.shoppingCampaigns()
+
+  .withCondition("LabelNames CONTAINS_ANY ['" + labelName + "']")
+
+  .get();
+
+var videocampaignIterator = AdsApp.videoCampaigns()
+
+  .withCondition("LabelNames CONTAINS_ANY ['" + labelName + "']")
+
+  .get();
+
+while(campaignIterator.hasNext()) {
+
+  campaignIterator.next().enable();
+
+}
+
+while(shopingcampaignIterator.hasNext()) {
+
+  shopingcampaignIterator.next().enable();
+
+}
+
+while(videocampaignIterator.hasNext()) {
+
+  videocampaignIterator.next().enable();
+
+}
+
+    Logger.log("Кампании запущены");
+
+}
